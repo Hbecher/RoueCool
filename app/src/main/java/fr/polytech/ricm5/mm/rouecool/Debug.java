@@ -13,7 +13,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class MainView extends View
+public class Debug extends View
 {
 	private final SoundPool sounds;
 	private final int pap;
@@ -28,18 +28,18 @@ public class MainView extends View
 	private boolean touching, rolling, scrolling;
 	private boolean papLoaded;
 
-	public MainView(Context context, AttributeSet attrs)
+	public Debug(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 
-		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.MainView, 0, 0);
+		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.Wheel, 0, 0);
 
 		float circleThickness;
 
 		try
 		{
-			posCircleRadius = a.getDimension(R.styleable.MainView_circleRadius, 256.0F);
-			circleThickness = a.getDimension(R.styleable.MainView_circleThickness, 1.0F);
+			posCircleRadius = a.getDimension(R.styleable.Wheel_circleRadius, 256.0F);
+			circleThickness = a.getDimension(R.styleable.Wheel_circleThickness, 1.0F);
 		}
 		finally
 		{
@@ -176,7 +176,7 @@ public class MainView extends View
 
 					if(scrolling)
 					{
-						speed += Math.abs(angle) * 2.0D;
+						speed += Math.abs(angle) * 2.0D * (1.0D + (wheelRadius - pos.distance(wheel)) / wheelRadius);
 						direction = Double.compare(angle, 0.0);
 
 						if(speed >= 1.0)

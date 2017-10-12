@@ -4,7 +4,13 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="fr.polytech.ricm5.mm.rouecool.MainActivity">
+        tools:context="fr.polytech.ricm5.mm.rouecool.Main">
 
-    <include layout="@layout/view_main"/>
+    <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/demo_list"/>
+
+    <include layout="@layout/wheel" android:id="@+id/demo_wheel"/>
+
 </android.support.constraint.ConstraintLayout>
