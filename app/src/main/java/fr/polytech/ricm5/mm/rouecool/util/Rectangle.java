@@ -1,69 +1,69 @@
-package fr.polytech.ricm5.mm.rouecool;
+package fr.polytech.ricm5.mm.rouecool.util;
 
 import android.graphics.RectF;
 
-class Rectangle
+public class Rectangle
 {
 	private float width, height;
 	private final RectF rect;
 
-	Rectangle()
+	public Rectangle()
 	{
 		this(0.0F, 0.0F, 0.0F, 0.0F);
 	}
 
-	Rectangle(float x, float y, float width, float height)
+	public Rectangle(float x, float y, float width, float height)
 	{
 		this.width = width;
 		this.height = height;
 		rect = new RectF(x, y, x + width, y + height);
 	}
 
-	RectF rect()
+	public RectF rect()
 	{
 		return rect;
 	}
 
-	void setX(float x)
+	public void setX(float x)
 	{
 		rect.left = x;
 		rect.right = x + width;
 	}
 
-	float getX()
+	public float getX()
 	{
 		return rect.left;
 	}
 
-	void setY(float y)
+	public void setY(float y)
 	{
 		rect.top = y;
 		rect.bottom = y + height;
 	}
 
-	float getY()
+	public float getY()
 	{
 		return rect.top;
 	}
 
-	void setWidth(float width)
+	public void setWidth(float width)
 	{
 		this.width = width;
 		rect.right = rect.left + width;
 	}
 
-	float getWidth()
+	public float getWidth()
 	{
 		return width;
 	}
 
-	void setHeight(float height)
+	public void setHeight(float height)
 	{
 		this.height = height;
 		rect.bottom = rect.top + height;
 	}
 
-	float getHeight()
+	public float getHeight()
 	{
 		return height;
 	}

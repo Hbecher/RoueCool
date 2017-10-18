@@ -1,57 +1,42 @@
-package fr.polytech.ricm5.mm.rouecool;
+package fr.polytech.ricm5.mm.rouecool.util;
 
-class Vector
+public class Vector
 {
 	private static final double TWO_PI = 6.283185307179586;
-	private Point origin, point;
+	private final Point origin, point;
 
-	Vector(Point p)
+	public Vector(Point p)
 	{
 		this(new Point(0.0, 0.0), p);
 	}
 
-	Vector(Point origin, Point point)
+	public Vector(Point origin, Point point)
 	{
-		setOrigin(origin);
-		setPoint(point);
-	}
-
-	Point getOrigin()
-	{
-		return origin;
-	}
-
-	void setOrigin(Point origin)
-	{
-		if(origin == null)
+		if(origin == null || point == null)
 		{
 			throw new NullPointerException();
 		}
 
 		this.origin = origin;
+		this.point = point;
 	}
 
-	Point getPoint()
+	public Point getOrigin()
+	{
+		return origin;
+	}
+
+	public Point getPoint()
 	{
 		return point;
 	}
 
-	void setPoint(Point point)
-	{
-		if(point == null)
-		{
-			throw new NullPointerException();
-		}
-
-		this.point = point;
-	}
-
-	double angle()
+	public double angle()
 	{
 		return Math.atan2(origin.getY() - point.getY(), point.getX() - origin.getX());
 	}
 
-	double angle(Vector v)
+	public double angle(Vector v)
 	{
 		if(v == null)
 		{
@@ -80,27 +65,32 @@ class Vector
 		return d;
 	}
 
-	void scale(double scale)
+	public void scale(double scale)
 	{
 		throw new UnsupportedOperationException("NIY");
 	}
 
-	void add(Vector v)
+	public void add(Vector v)
 	{
 		throw new UnsupportedOperationException("NIY");
 	}
 
-	void dot(Vector v)
+	public void dot(Vector v)
 	{
 		throw new UnsupportedOperationException("NIY");
 	}
 
-	void rotate(double d)
+	public void rotate(double d)
 	{
 		throw new UnsupportedOperationException("NIY");
 	}
 
-	Vector copy()
+	public void translate(double x, double y)
+	{
+		throw new UnsupportedOperationException("NIY");
+	}
+
+	public Vector copy()
 	{
 		return new Vector(origin.copy(), point.copy());
 	}

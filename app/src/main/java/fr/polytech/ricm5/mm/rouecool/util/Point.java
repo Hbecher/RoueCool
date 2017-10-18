@@ -1,72 +1,82 @@
-package fr.polytech.ricm5.mm.rouecool;
+package fr.polytech.ricm5.mm.rouecool.util;
 
-class Point
+public class Point
 {
 	private double x, y;
 
-	Point(double x, double y)
+	public Point(double x, double y)
 	{
 		this.x = x;
 		this.y = y;
 	}
 
-	static Point origin()
+	public static Point origin()
 	{
 		return new Point(0.0, 0.0);
 	}
 
-	double getX()
+	public double getX()
 	{
 		return x;
 	}
 
-	float getXf()
+	public float getXf()
 	{
 		return (float) x;
 	}
 
-	void setX(double x)
+	public void setX(double x)
 	{
 		this.x = x;
 	}
 
-	double getY()
+	public double getY()
 	{
 		return y;
 	}
 
-	float getYf()
+	public float getYf()
 	{
 		return (float) y;
 	}
 
-	void setY(double y)
+	public void setY(double y)
 	{
 		this.y = y;
 	}
 
-	void set(double x, double y)
+	public void set(double x, double y)
 	{
 		setX(x);
 		setY(y);
 	}
 
-	double distance(Point p)
+	public void set(Point p)
+	{
+		set(p.x, p.y);
+	}
+
+	public void translate(double dx, double dy)
+	{
+		set(x + dx, y + dy);
+	}
+
+	public double distance(Point p)
 	{
 		return distance(p.x, p.y);
 	}
 
-	double distance(double x, double y)
+	public double distance(double x, double y)
 	{
 		return Math.sqrt(Math.pow(x - this.x, 2.0) + Math.pow(y - this.y, 2.0));
 	}
 
-	Vector createVector(Point p)
+	public Vector createVector(Point p)
 	{
 		return new Vector(this, p);
 	}
 
-	Point copy()
+	public Point copy()
 	{
 		return new Point(x, y);
 	}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="fr.polytech.ricm5.mm.rouecool.demo.Demo">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="44sp"
+                android:textColor="@android:color/holo_red_dark"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textSize="32sp"
+                android:id="@+id/demo_select"/>
+
+        <include layout="@layout/separator"/>
+
+        <ListView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/demo_list"/>
+    </LinearLayout>
+
+    <include
+            layout="@layout/wheel"
+            android:id="@+id/demo_wheel"/>
+
+</android.support.constraint.ConstraintLayout>
