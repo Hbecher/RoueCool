@@ -12,6 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import fr.polytech.ricm5.mm.rouecool.R;
+import fr.polytech.ricm5.mm.rouecool.res.sounds.SoundManager;
 import fr.polytech.ricm5.mm.rouecool.wheel.Wheel;
 import fr.polytech.ricm5.mm.rouecool.wheel.WheelListener;
 import fr.polytech.ricm5.mm.rouecool.wheel.WheelTickEvent;
@@ -20,6 +21,7 @@ public class Demo extends AppCompatActivity
 {
 	private final List<Element<Integer>> elements = new ArrayList<>();
 	private int selected, highlighted;
+	private SoundManager soundManager;
 	private TextView selection;
 	private ListView list;
 
@@ -28,6 +30,8 @@ public class Demo extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.demo);
+
+		soundManager = new SoundManager(getBaseContext());
 
 		selection = (TextView) findViewById(R.id.demo_select);
 		list = (ListView) findViewById(R.id.demo_list);
@@ -44,6 +48,8 @@ public class Demo extends AppCompatActivity
 				if(position != selected)
 				{
 					setSelected(position);
+
+					soundManager.playSound(R.raw.cla);
 				}
 			}
 		});
@@ -57,6 +63,8 @@ public class Demo extends AppCompatActivity
 				if(highlighted != selected)
 				{
 					setSelected(highlighted);
+
+					soundManager.playSound(R.raw.cla);
 				}
 			}
 
@@ -64,6 +72,8 @@ public class Demo extends AppCompatActivity
 			public void onWheelTick(WheelTickEvent e)
 			{
 				setHighlighted(mod(highlighted + e.getDirection() * e.getAmount(), elements.size()));
+
+				soundManager.playSound(R.raw.pap);
 			}
 		};
 		wheel.addWheelTickListener(l);

@@ -1,7 +1,5 @@
 package fr.polytech.ricm5.mm.rouecool.wheel;
 
-import static android.content.Context.AUDIO_SERVICE;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,8 +8,6 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -24,8 +20,6 @@ public class Wheel extends View
 {
 	private final Set<WheelTickListener> tickListeners = new HashSet<>();
 	private final Set<WheelClickListener> clickListeners = new HashSet<>();
-	private final SoundPool sounds;
-	private final int pap;
 	private final Paint circle, target, filled;
 	private final Point pos = Point.origin(), prevPos = Point.origin(), initPos = Point.origin(), wheel = Point.origin();
 	private final Vector v = new Vector(wheel, pos), prevV = new Vector(wheel, prevPos);
@@ -34,7 +28,6 @@ public class Wheel extends View
 	private double wheelRotation = 0.0;
 	private State state;
 	private double nextTick;
-	private boolean papLoaded;
 
 	public Wheel(Context context, AttributeSet attrs)
 	{
@@ -52,26 +45,6 @@ public class Wheel extends View
 		finally
 		{
 			a.recycle();
-		}
-
-		if(isInEditMode())
-		{
-			sounds = null;
-			pap = -1;
-			papLoaded = false;
-		}
-		else
-		{
-			sounds = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
-			sounds.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener()
-			{
-				@Override
-				public void onLoadComplete(SoundPool soundPool, int sampleId, int status)
-				{
-					papLoaded = true;
-				}
-			});
-			pap = sounds.load(context, R.raw.pap, 1);
 		}
 
 		setState(State.IDLE);
@@ -208,15 +181,6 @@ public class Wheel extends View
 
 							if(nextTick >= 1.0)
 							{
-								if(papLoaded)
-								{
-									AudioManager audioManager = (AudioManager) getContext().getSystemService(AUDIO_SERVICE);
-									float actualVolume = (float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-									float maxVolume = (float) audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-									float volume = actualVolume / maxVolume;
-									sounds.play(pap, volume, volume, 1, 0, 1.0F);
-								}
-
 								dispatchWheelTick(direction, (int) nextTick);
 
 								nextTick = 0.0;
@@ -323,6 +287,8 @@ public class Wheel extends View
 		initPos.set(0.0, 0.0);
 
 		nextTick = 0.0;
+
+		wheel.set(getWidth() - wheelRadius - 50, getHeight() - wheelRadius - 50);
 
 		invalidate();
 	}
