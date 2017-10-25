@@ -1,20 +1,29 @@
 package fr.polytech.ricm5.mm.rouecool.res.sounds;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.support.annotation.RawRes;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
-import fr.polytech.ricm5.mm.rouecool.R;
 
 public class SoundManager
 {
-	private final SparseIntArray idConverter = new SparseIntArray();
+	private final SparseIntArray resToSample = new SparseIntArray();
 	private final SparseArray<Sound> sounds = new SparseArray<>();
+	private final BlockingQueue<Integer> requests = new LinkedBlockingQueue<>();
+	private final Semaphore wait = new Semaphore(0);
+	private final Context context;
+	private final SoundPool pool;
 
-	public SoundManager(final Context context)
+	public SoundManager(Context context)
 	{
-		SoundPool pool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+		this.context = context;
+		pool = new SoundPool(16, AudioManager.STREAM_MUSIC, 0);
 		pool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener()
 		{
 			@Override
@@ -22,35 +31,87 @@ public class SoundManager
 			{
 				if(status == 0)
 				{
-					sounds.put(sampleId, new Sound(soundPool, sampleId, context));
+					sounds.put(sampleId, new Sound(SoundManager.this, sampleId));
 				}
+
+				wait.release();
 			}
 		});
-
-		int[] soundIds = {R.raw.pap, R.raw.cla, R.raw.pop};
-
-		for(int id : soundIds)
-		{
-			loadSound(pool, context, id);
-		}
 	}
 
-	private void loadSound(SoundPool pool, Context context, int resId)
+	public void start()
+	{
+		Player p = new Player();
+		Thread soundThread = new Thread(p, "Sound manager thread");
+		soundThread.setDaemon(true);
+		soundThread.start();
+	}
+
+	public void stop()
+	{
+		requests.offer(-1);
+	}
+
+	public void playSound(@RawRes int resId)
+	{
+		requests.offer(resId);
+	}
+
+	Context getContext()
+	{
+		return context;
+	}
+
+	SoundPool getSoundPool()
+	{
+		return pool;
+	}
+
+	private void loadSound(int resId) throws InterruptedException
 	{
 		int sampleId = pool.load(context, resId, 1);
 
-		idConverter.put(resId, sampleId);
+		wait.acquire();
+
+		resToSample.put(resId, sampleId);
 	}
 
-	public void playSound(int id)
+	private boolean isLoaded(int resId)
 	{
-		if(idConverter.indexOfKey(id) >= 0)
-		{
-			Sound sound = sounds.get(idConverter.get(id));
+		return resToSample.indexOfKey(resId) >= 0;
+	}
 
-			if(sound != null)
+	private class Player implements Runnable
+	{
+		@Override
+		public void run()
+		{
+			try
 			{
-				sound.playSound();
+				while(true)
+				{
+					Integer resId = requests.take();
+
+					if(resId == null || resId < 0)
+					{
+						break;
+					}
+
+					if(!isLoaded(resId))
+					{
+						loadSound(resId);
+					}
+
+					Sound sound = sounds.get(resToSample.get(resId));
+
+					if(sound != null)
+					{
+						sound.playSound();
+					}
+				}
+			}
+			catch(InterruptedException ignored)
+			{
 			}
 		}
 	}

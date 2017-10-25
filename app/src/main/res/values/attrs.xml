@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="Wheel">
-        <attr name="circleRadius" format="dimension"/>
-        <attr name="circleThickness" format="dimension"/>
+        <attr name="radius" format="dimension"/>
+        <attr name="margin" format="dimension"/>
+        <attr name="clickPlay" format="dimension"/>
+        <attr name="drawImage" format="boolean"/>
+        <attr name="drawOutline" format="boolean"/>
+        <attr name="drawTouch" format="boolean"/>
+        <attr name="touchRadius" format="dimension"/>
+        <attr name="touchThickness" format="dimension"/>
+        <attr name="snapBack" format="boolean"/>
     </declare-styleable>
 </resources>

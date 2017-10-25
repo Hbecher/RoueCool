@@ -20,6 +20,7 @@ import fr.polytech.ricm5.mm.rouecool.wheel.WheelTickEvent;
 public class Demo extends AppCompatActivity
 {
 	private final List<Element<Integer>> elements = new ArrayList<>();
+	private final int size = 600;
 	private int selected, highlighted;
 	private SoundManager soundManager;
 	private TextView selection;
@@ -32,6 +33,7 @@ public class Demo extends AppCompatActivity
 		setContentView(R.layout.demo);
 
 		soundManager = new SoundManager(getBaseContext());
+		soundManager.start();
 
 		selection = (TextView) findViewById(R.id.demo_select);
 		list = (ListView) findViewById(R.id.demo_list);
@@ -49,7 +51,7 @@ public class Demo extends AppCompatActivity
 				{
 					setSelected(position);
 
-					soundManager.playSound(R.raw.cla);
+					playSelectSound();
 				}
 			}
 		});
@@ -64,7 +66,7 @@ public class Demo extends AppCompatActivity
 				{
 					setSelected(highlighted);
 
-					soundManager.playSound(R.raw.cla);
+					playSelectSound();
 				}
 			}
 
@@ -73,7 +75,7 @@ public class Demo extends AppCompatActivity
 			{
 				setHighlighted(mod(highlighted + e.getDirection() * e.getAmount(), elements.size()));
 
-				soundManager.playSound(R.raw.pap);
+				playHighlightSound();
 			}
 		};
 		wheel.addWheelTickListener(l);
@@ -84,7 +86,7 @@ public class Demo extends AppCompatActivity
 	{
 		elements.clear();
 
-		for(int i = 0; i < 400; i++)
+		for(int i = 0; i < size; i++)
 		{
 			Element<Integer> element = new Element<>(this, i);
 
@@ -112,13 +114,23 @@ public class Demo extends AppCompatActivity
 
 	private void setHighlighted(final int index)
 	{
-		elements.get(highlighted).deselect();
+		elements.get(highlighted).setSelected(false);
 
 		highlighted = index;
 
-		elements.get(index).select();
+		elements.get(index).setSelected(true);
 
 		list.setSelection(index);
+	}
+
+	private void playHighlightSound()
+	{
+		soundManager.playSound(R.raw.pap);
+	}
+
+	private void playSelectSound()
+	{
+		soundManager.playSound(R.raw.cla);
 	}
 
 	private class Adapter extends BaseAdapter
@@ -126,7 +138,7 @@ public class Demo extends AppCompatActivity
 		@Override
 		public int getCount()
 		{
-			return elements.size();
+			return size;
 		}
 
 		@Override

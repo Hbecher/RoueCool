@@ -6,5 +6,12 @@
         android:orientation="vertical"
         android:layout_gravity="bottom"
         xmlns:custom="http://schemas.android.com/apk/res-auto"
-        custom:circleRadius="10pt"
-        custom:circleThickness="1pt"/>
+        custom:radius="100dp"
+        custom:margin="20dp"
+        custom:clickPlay="10dp"
+        custom:drawImage="true"
+        custom:drawOutline="false"
+        custom:drawTouch="true"
+        custom:touchRadius="20dp"
+        custom:touchThickness="2dp"
+        custom:snapBack="false"/>

@@ -9,10 +9,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import fr.polytech.ricm5.mm.rouecool.R;
+import fr.polytech.ricm5.mm.rouecool.res.images.ScaledBitmap;
 import fr.polytech.ricm5.mm.rouecool.util.Point;
 import fr.polytech.ricm5.mm.rouecool.util.Vector;
 
@@ -20,12 +20,13 @@ public class Wheel extends View
 {
 	private final Set<WheelTickListener> tickListeners = new HashSet<>();
 	private final Set<WheelClickListener> clickListeners = new HashSet<>();
-	private final Paint circle, target, filled;
-	private final Point pos = Point.origin(), prevPos = Point.origin(), initPos = Point.origin(), wheel = Point.origin();
-	private final Vector v = new Vector(wheel, pos), prevV = new Vector(wheel, prevPos);
-	private final float clickMargin = 8.0F;
-	private float posCircleRadius, wheelRadius = 200.0F;
-	private double wheelRotation = 0.0;
+	private final Point pos = Point.origin(), prevPos = Point.origin(), initPos = Point.origin(), center = Point.origin();
+	private final Vector v = new Vector(center, pos), prevV = new Vector(center, prevPos);
+	private final float wheelRadius, wheelMargin, clickPlay, touchRadius, touchThickness;
+	private final boolean drawWheelImage, drawOutline, drawTouchPos, snapBack;
+	private final Paint touchCircle, wheelCircle, wheelOutline;
+	private final ScaledBitmap staticWheel, rotatingWheel;
+	private double wheelRotation;
 	private State state;
 	private double nextTick;
 
@@ -35,12 +36,17 @@ public class Wheel extends View
 
 		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.Wheel, 0, 0);
 
-		float circleThickness;
-
 		try
 		{
-			posCircleRadius = a.getDimension(R.styleable.Wheel_circleRadius, 256.0F);
-			circleThickness = a.getDimension(R.styleable.Wheel_circleThickness, 1.0F);
+			wheelRadius = a.getDimension(R.styleable.Wheel_radius, 200.0F);
+			wheelMargin = a.getDimension(R.styleable.Wheel_margin, 40.0F);
+			clickPlay = a.getDimension(R.styleable.Wheel_clickPlay, 20.0F);
+			touchRadius = a.getDimension(R.styleable.Wheel_touchRadius, 40.0F);
+			touchThickness = a.getDimension(R.styleable.Wheel_touchThickness, 4.0F);
+			drawWheelImage = a.getBoolean(R.styleable.Wheel_drawImage, true);
+			drawOutline = a.getBoolean(R.styleable.Wheel_drawOutline, false);
+			drawTouchPos = a.getBoolean(R.styleable.Wheel_drawTouch, false);
+			snapBack = a.getBoolean(R.styleable.Wheel_snapBack, false);
 		}
 		finally
 		{
@@ -49,19 +55,25 @@ public class Wheel extends View
 
 		setState(State.IDLE);
 
-		circle = new Paint(Paint.ANTI_ALIAS_FLAG);
-		circle.setStyle(Paint.Style.STROKE);
-		circle.setStrokeWidth(circleThickness);
-		circle.setColor(Color.BLUE);
+		touchCircle = new Paint(Paint.ANTI_ALIAS_FLAG);
+		touchCircle.setStyle(Paint.Style.STROKE);
+		touchCircle.setStrokeWidth(touchThickness);
+		touchCircle.setColor(Color.BLUE);
 
-		target = new Paint(Paint.ANTI_ALIAS_FLAG);
-		target.setStyle(Paint.Style.STROKE);
-		target.setStrokeWidth(circleThickness);
-		target.setColor(Color.RED);
+		wheelCircle = new Paint(Paint.ANTI_ALIAS_FLAG);
+		wheelCircle.setStyle(Paint.Style.STROKE);
+		wheelCircle.setStrokeWidth(touchThickness);
+		wheelCircle.setColor(Color.RED);
 
-		filled = new Paint(Paint.ANTI_ALIAS_FLAG);
-		filled.setStyle(Paint.Style.FILL);
-		filled.setColor(Color.RED);
+		wheelOutline = new Paint(Paint.ANTI_ALIAS_FLAG);
+		wheelOutline.setStyle(Paint.Style.STROKE);
+		wheelOutline.setStrokeWidth(1.0F);
+		wheelOutline.setColor(Color.GRAY & 0x3f << 24);
+
+		staticWheel = new ScaledBitmap(context.getResources(), R.raw.wheel);
+		staticWheel.setScale((2.0F * wheelRadius) / Math.max(staticWheel.getWidth(), staticWheel.getHeight()));
+		rotatingWheel = new ScaledBitmap(staticWheel.getImage());
+		rotatingWheel.setScale((2.0F * wheelRadius) / Math.max(rotatingWheel.getWidth(), rotatingWheel.getHeight()));
 	}
 
 	private boolean isInWheel()
@@ -71,12 +83,71 @@ public class Wheel extends View
 
 	private boolean isInWheel(double x, double y)
 	{
-		return wheel.distance(x, y) <= wheelRadius;
+		return center.distance(x, y) <= wheelRadius;
 	}
 
 	private double speed(double angle)
 	{
-		return Math.abs(angle) * 2.0 * Math.exp(2.0 * (wheelRadius - pos.distance(wheel)) / wheelRadius);
+		return Math.abs(angle) * 2.0 * Math.exp(2.0 * (1.0 - pos.distance(center) / wheelRadius));
+	}
+
+	private void drawWheel(Canvas canvas)
+	{
+		float rotation = (float) Math.toDegrees(wheelRotation);
+		float x = center.getXf(), y = center.getYf();
+
+		if(drawWheelImage)
+		{
+			ScaledBitmap img = state == State.ROLL ? rotatingWheel : staticWheel;
+			float dx = img.getScaledWidth() / 2.0F, dy = img.getScaledHeight() / 2.0F;
+
+			canvas.translate(x, y);
+			canvas.rotate(rotation);
+			canvas.translate(-dx, -dy);
+
+			canvas.drawBitmap(img.getImage(), img.getScaleMatrix(), wheelCircle);
+
+			canvas.translate(dx, dy);
+			canvas.rotate(-rotation);
+			canvas.translate(-x, -y);
+		}
+		else
+		{
+			wheelCircle.setStyle(Paint.Style.STROKE);
+
+			canvas.drawCircle(x, y, wheelRadius, wheelCircle);
+
+			wheelCircle.setStyle(Paint.Style.FILL);
+
+			canvas.drawCircle(x, y, wheelRadius / 10.0F, wheelCircle);
+
+			canvas.rotate(rotation, x, y);
+
+			canvas.drawLine(x, y, x, y, wheelCircle);
+			canvas.drawRect(x - wheelRadius / 100.0F, y - wheelRadius, x + wheelRadius / 100.0F, y, wheelCircle);
+
+			canvas.rotate(-rotation, x, y);
+		}
+
+		if(drawOutline)
+		{
+			wheelOutline.setStyle(Paint.Style.STROKE);
+
+			canvas.drawCircle(x, y, wheelRadius, wheelOutline);
+
+			wheelOutline.setStyle(Paint.Style.FILL);
+
+			canvas.drawCircle(x, y, wheelRadius / 10.0F, wheelOutline);
+		}
+	}
+
+	private void drawTouchPos(Canvas canvas)
+	{
+		if(drawTouchPos && (state == State.CLICK || state == State.ROLL || state == State.MOVE))
+		{
+			touchCircle.setColor(state == State.CLICK ? Color.BLUE : Color.GREEN);
+			canvas.drawCircle(pos.getXf(), pos.getYf(), touchRadius, touchCircle);
+		}
 	}
 
 	@Override
@@ -84,23 +155,8 @@ public class Wheel extends View
 	{
 		super.onDraw(canvas);
 
-		float x = wheel.getXf(), y = wheel.getYf();
-
-		canvas.drawCircle(x, y, wheelRadius, target);
-		canvas.drawCircle(x, y, 20, filled);
-
-		float wrf = (float) Math.toDegrees(wheelRotation);
-
-		canvas.rotate(wrf, x, y);
-		canvas.drawLine(x, y, x, y, filled);
-		canvas.drawRect(x - 2, y - wheelRadius, x + 2, y, filled);
-		canvas.rotate(-wrf, x, y);
-
-		if(state == State.CLICK || state == State.ROLL || state == State.MOVE)
-		{
-			circle.setColor(state == State.CLICK ? Color.BLUE : Color.GREEN);
-			canvas.drawCircle(pos.getXf(), pos.getYf(), posCircleRadius, circle);
-		}
+		drawWheel(canvas);
+		drawTouchPos(canvas);
 	}
 
 	@Override
@@ -108,7 +164,7 @@ public class Wheel extends View
 	{
 		super.onSizeChanged(w, h, oldw, oldh);
 
-		wheel.set(w - wheelRadius - 50, h - wheelRadius - 50);
+		center.set(w - wheelRadius - wheelMargin, h - wheelRadius - wheelMargin);
 	}
 
 	@Override
@@ -141,7 +197,7 @@ public class Wheel extends View
 					{
 						updatePosition(event.getX(), event.getY());
 
-						if(initPos.distance(pos) > clickMargin)
+						if(initPos.distance(pos) > clickPlay)
 						{
 							setState(State.ROLL);
 						}
@@ -188,7 +244,7 @@ public class Wheel extends View
 						}
 						else
 						{
-							wheel.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
+							center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
 							// setState(State.OUT);
 						}
 
@@ -216,7 +272,7 @@ public class Wheel extends View
 					{
 						updatePosition(event.getX(), event.getY());
 
-						wheel.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
+						center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
 
 						if(isInWheel())
 						{
@@ -288,7 +344,10 @@ public class Wheel extends View
 
 		nextTick = 0.0;
 
-		wheel.set(getWidth() - wheelRadius - 50, getHeight() - wheelRadius - 50);
+		if(snapBack)
+		{
+			center.set(getWidth() - wheelRadius - wheelMargin, getHeight() - wheelRadius - wheelMargin);
+		}
 
 		invalidate();
 	}
@@ -296,8 +355,6 @@ public class Wheel extends View
 	private void setState(State state)
 	{
 		this.state = state;
-
-		Log.d("Wheel State", state.name());
 	}
 
 	public void addWheelTickListener(WheelTickListener l)

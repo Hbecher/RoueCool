@@ -52,8 +52,6 @@ class Element<T> extends LinearLayout
 
 	public void setSelected(boolean selected)
 	{
-		super.setSelected(selected);
-
 		if(selected)
 		{
 			select();
@@ -64,14 +62,14 @@ class Element<T> extends LinearLayout
 		}
 	}
 
-	void select()
+	private void select()
 	{
 		view.setSelected(true);
 		view.setTextColor(HIGHLIGHTED_COLOR);
 		view.setTextSize(HIGHLIGHTED_SIZE);
 	}
 
-	void deselect()
+	private void deselect()
 	{
 		view.setSelected(false);
 		view.setTextColor(TEXT_COLOR);
