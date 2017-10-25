@@ -9,6 +9,7 @@
         <attr name="drawTouch" format="boolean"/>
         <attr name="touchRadius" format="dimension"/>
         <attr name="touchThickness" format="dimension"/>
+        <attr name="moveWhenOut" format="boolean"/>
         <attr name="snapBack" format="boolean"/>
     </declare-styleable>
 </resources>

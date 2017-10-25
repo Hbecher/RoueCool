@@ -57,6 +57,16 @@ public class SoundManager
 		requests.offer(resId);
 	}
 
+	public void reset()
+	{
+		for(int i = 0, size = resToSample.size(); i < size; i++)
+		{
+			pool.unload(resToSample.valueAt(i));
+		}
+
+		resToSample.clear();
+	}
+
 	Context getContext()
 	{
 		return context;
@@ -113,6 +123,9 @@ public class SoundManager
 			catch(InterruptedException ignored)
 			{
 			}
+
+			pool.release();
+			resToSample.clear();
 		}
 	}
 }

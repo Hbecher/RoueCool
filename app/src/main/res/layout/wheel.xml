@@ -14,4 +14,5 @@
         custom:drawTouch="true"
         custom:touchRadius="20dp"
         custom:touchThickness="2dp"
+        custom:moveWhenOut="true"
         custom:snapBack="false"/>

@@ -7,15 +7,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.*;
 import fr.polytech.ricm5.mm.rouecool.R;
 import fr.polytech.ricm5.mm.rouecool.res.sounds.SoundManager;
-import fr.polytech.ricm5.mm.rouecool.wheel.Wheel;
-import fr.polytech.ricm5.mm.rouecool.wheel.WheelListener;
-import fr.polytech.ricm5.mm.rouecool.wheel.WheelTickEvent;
+import fr.polytech.ricm5.mm.rouecool.wheel.*;
 
 public class Demo extends AppCompatActivity
 {
@@ -31,9 +26,6 @@ public class Demo extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.demo);
-
-		soundManager = new SoundManager(getBaseContext());
-		soundManager.start();
 
 		selection = (TextView) findViewById(R.id.demo_select);
 		list = (ListView) findViewById(R.id.demo_list);
@@ -57,7 +49,7 @@ public class Demo extends AppCompatActivity
 		});
 
 		Wheel wheel = (Wheel) findViewById(R.id.demo_wheel);
-		WheelListener l = new WheelListener()
+		WheelListener l = new WheelAdapter()
 		{
 			@Override
 			public void onWheelClick()
@@ -80,6 +72,30 @@ public class Demo extends AppCompatActivity
 		};
 		wheel.addWheelTickListener(l);
 		wheel.addWheelClickListener(l);
+	}
+
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+
+		if(soundManager != null)
+		{
+			soundManager.stop();
+			soundManager = null;
+		}
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+
+		if(soundManager == null)
+		{
+			soundManager = new SoundManager(getBaseContext());
+			soundManager.start();
+		}
 	}
 
 	private void populateElements()

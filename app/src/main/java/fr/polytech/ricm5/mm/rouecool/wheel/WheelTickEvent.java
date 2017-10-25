@@ -2,8 +2,7 @@ package fr.polytech.ricm5.mm.rouecool.wheel;
 
 public class WheelTickEvent
 {
-	private final int direction;
-	private final int amount;
+	private final int direction, amount;
 
 	WheelTickEvent(int direction, int amount)
 	{

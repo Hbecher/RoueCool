@@ -19,11 +19,12 @@ import fr.polytech.ricm5.mm.rouecool.util.Vector;
 public class Wheel extends View
 {
 	private final Set<WheelTickListener> tickListeners = new HashSet<>();
+	private final Set<WheelRollListener> rollListeners = new HashSet<>();
 	private final Set<WheelClickListener> clickListeners = new HashSet<>();
 	private final Point pos = Point.origin(), prevPos = Point.origin(), initPos = Point.origin(), center = Point.origin();
 	private final Vector v = new Vector(center, pos), prevV = new Vector(center, prevPos);
 	private final float wheelRadius, wheelMargin, clickPlay, touchRadius, touchThickness;
-	private final boolean drawWheelImage, drawOutline, drawTouchPos, snapBack;
+	private final boolean drawWheelImage, drawOutline, drawTouchPos, moveWhenOut, snapBack;
 	private final Paint touchCircle, wheelCircle, wheelOutline;
 	private final ScaledBitmap staticWheel, rotatingWheel;
 	private double wheelRotation;
@@ -46,6 +47,7 @@ public class Wheel extends View
 			drawWheelImage = a.getBoolean(R.styleable.Wheel_drawImage, true);
 			drawOutline = a.getBoolean(R.styleable.Wheel_drawOutline, false);
 			drawTouchPos = a.getBoolean(R.styleable.Wheel_drawTouch, false);
+			moveWhenOut = a.getBoolean(R.styleable.Wheel_moveWhenOut, false);
 			snapBack = a.getBoolean(R.styleable.Wheel_snapBack, false);
 		}
 		finally
@@ -160,11 +162,14 @@ public class Wheel extends View
 	}
 
 	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh)
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
-		super.onSizeChanged(w, h, oldw, oldh);
+		super.onLayout(changed, left, top, right, bottom);
 
-		center.set(w - wheelRadius - wheelMargin, h - wheelRadius - wheelMargin);
+		if(changed)
+		{
+			center.set((right - left) - wheelRadius - wheelMargin, (bottom - top) - wheelRadius - wheelMargin);
+		}
 	}
 
 	@Override
@@ -235,6 +240,8 @@ public class Wheel extends View
 							nextTick += speed(angle);
 							int direction = Double.compare(angle, 0.0);
 
+							dispatchWheelRoll(angle);
+
 							if(nextTick >= 1.0)
 							{
 								dispatchWheelTick(direction, (int) nextTick);
@@ -242,41 +249,13 @@ public class Wheel extends View
 								nextTick = 0.0;
 							}
 						}
-						else
+						else if(moveWhenOut)
 						{
 							center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
-							// setState(State.OUT);
 						}
-
-						invalidate();
-
-						return true;
-					}
-
-					case MotionEvent.ACTION_UP:
-					{
-						reset();
-
-						return true;
-					}
-				}
-
-				break;
-			}
-
-			case MOVE:
-			{
-				switch(event.getAction())
-				{
-					case MotionEvent.ACTION_MOVE:
-					{
-						updatePosition(event.getX(), event.getY());
-
-						center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
-
-						if(isInWheel())
+						else
 						{
-							setState(State.ROLL);
+							setState(State.OUT);
 						}
 
 						invalidate();
@@ -294,6 +273,37 @@ public class Wheel extends View
 
 				break;
 			}
+
+//			case MOVE:
+//			{
+//				switch(event.getAction())
+//				{
+//					case MotionEvent.ACTION_MOVE:
+//					{
+//						updatePosition(event.getX(), event.getY());
+//
+//						center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
+//
+//						if(isInWheel())
+//						{
+//							setState(State.ROLL);
+//						}
+//
+//						invalidate();
+//
+//						return true;
+//					}
+//
+//					case MotionEvent.ACTION_UP:
+//					{
+//						reset();
+//
+//						return true;
+//					}
+//				}
+//
+//				break;
+//			}
 
 			case OUT:
 			{
@@ -367,6 +377,16 @@ public class Wheel extends View
 		tickListeners.remove(l);
 	}
 
+	public void addWheelRollListener(WheelRollListener l)
+	{
+		rollListeners.add(l);
+	}
+
+	public void removeWheelRollListener(WheelRollListener l)
+	{
+		rollListeners.remove(l);
+	}
+
 	public void addWheelClickListener(WheelClickListener l)
 	{
 		clickListeners.add(l);
@@ -384,6 +404,16 @@ public class Wheel extends View
 		for(WheelTickListener l : tickListeners)
 		{
 			l.onWheelTick(e);
+		}
+	}
+
+	private void dispatchWheelRoll(double angle)
+	{
+		WheelRollEvent e = new WheelRollEvent(angle);
+
+		for(WheelRollListener l : rollListeners)
+		{
+			l.onWheelRoll(e);
 		}
 	}
 
