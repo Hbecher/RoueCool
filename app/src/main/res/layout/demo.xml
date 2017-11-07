@@ -32,4 +32,8 @@
             layout="@layout/wheel"
             android:id="@+id/demo_wheel"/>
 
+    <include
+            layout="@layout/capture"
+            android:id="@+id/demo_capture"/>
+
 </android.support.constraint.ConstraintLayout>

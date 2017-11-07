@@ -11,5 +11,6 @@
         <attr name="touchThickness" format="dimension"/>
         <attr name="moveWhenOut" format="boolean"/>
         <attr name="snapBack" format="boolean"/>
+        <attr name="enabled" format="boolean"/>
     </declare-styleable>
 </resources>

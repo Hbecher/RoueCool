@@ -15,4 +15,5 @@
         custom:touchRadius="20dp"
         custom:touchThickness="2dp"
         custom:moveWhenOut="true"
-        custom:snapBack="false"/>
+        custom:snapBack="true"
+        custom:enabled="true"/>

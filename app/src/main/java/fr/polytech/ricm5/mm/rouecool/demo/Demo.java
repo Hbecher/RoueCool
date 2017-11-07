@@ -1,21 +1,32 @@
 package fr.polytech.ricm5.mm.rouecool.demo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import fr.polytech.ricm5.mm.rouecool.R;
 import fr.polytech.ricm5.mm.rouecool.res.sounds.SoundManager;
-import fr.polytech.ricm5.mm.rouecool.wheel.*;
+import fr.polytech.ricm5.mm.rouecool.wheel.Wheel;
+import fr.polytech.ricm5.mm.rouecool.wheel.WheelAdapter;
+import fr.polytech.ricm5.mm.rouecool.wheel.WheelListener;
+import fr.polytech.ricm5.mm.rouecool.wheel.WheelTickEvent;
 
 public class Demo extends AppCompatActivity
 {
-	private final List<Element<Integer>> elements = new ArrayList<>();
-	private final int size = 600;
+	private final List<Element<String>> elements = new ArrayList<>();
+	private Capture capture;
 	private int selected, highlighted;
 	private SoundManager soundManager;
 	private TextView selection;
@@ -27,6 +38,7 @@ public class Demo extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.demo);
 
+		capture = (Capture) findViewById(R.id.demo_capture);
 		selection = (TextView) findViewById(R.id.demo_select);
 		list = (ListView) findViewById(R.id.demo_list);
 
@@ -102,14 +114,34 @@ public class Demo extends AppCompatActivity
 	{
 		elements.clear();
 
-		for(int i = 0; i < size; i++)
+		BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.names)));
+
+		try
 		{
-			Element<Integer> element = new Element<>(this, i);
+			String line;
 
-			element.setSelected(i == selected);
-
-			elements.add(element);
+			while((line = reader.readLine()) != null)
+			{
+				elements.add(new Element<>(this, line));
+			}
 		}
+		catch(IOException ignored)
+		{
+		}
+		finally
+		{
+			try
+			{
+				reader.close();
+			}
+			catch(IOException ignored)
+			{
+			}
+		}
+
+		setSelected(0);
+
+		Log.i("Wheel demo elements", Arrays.toString(capture.getElements(elements)));
 	}
 
 	private int mod(int k, int n)
@@ -122,6 +154,11 @@ public class Demo extends AppCompatActivity
 	private void setSelected(int index)
 	{
 		selected = index;
+
+		if(capture.isStarted())
+		{
+			capture.next(index);
+		}
 
 		selection.setText(elements.get(index).formatData());
 
@@ -154,7 +191,7 @@ public class Demo extends AppCompatActivity
 		@Override
 		public int getCount()
 		{
-			return size;
+			return elements.size();
 		}
 
 		@Override

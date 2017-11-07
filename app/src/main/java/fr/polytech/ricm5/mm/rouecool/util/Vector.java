@@ -45,24 +45,7 @@ public class Vector
 
 		double d = v.angle() - angle();
 
-		if(d < -Math.PI)
-		{
-			do
-			{
-				d += TWO_PI;
-			}
-			while(d < -Math.PI);
-		}
-		else if(d > Math.PI)
-		{
-			do
-			{
-				d -= TWO_PI;
-			}
-			while(d > Math.PI);
-		}
-
-		return d;
+		return d < -Math.PI ? d + TWO_PI : d > Math.PI ? d - TWO_PI : d;
 	}
 
 	public void scale(double scale)

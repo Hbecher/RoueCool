@@ -24,9 +24,10 @@ public class Wheel extends View
 	private final Point pos = Point.origin(), prevPos = Point.origin(), initPos = Point.origin(), center = Point.origin();
 	private final Vector v = new Vector(center, pos), prevV = new Vector(center, prevPos);
 	private final float wheelRadius, wheelMargin, clickPlay, touchRadius, touchThickness;
-	private final boolean drawWheelImage, drawOutline, drawTouchPos, moveWhenOut, snapBack;
+	private final boolean drawWheelImage, drawOutline, drawTouchPos, moveWhenOut, snapBack, enabled;
 	private final Paint touchCircle, wheelCircle, wheelOutline;
-	private final ScaledBitmap staticWheel, rotatingWheel;
+	private final ScaledBitmap staticWheel, rotatingWheel, clickedWheel;
+	private ScaledBitmap drawnWheel;
 	private double wheelRotation;
 	private State state;
 	private double nextTick;
@@ -49,6 +50,7 @@ public class Wheel extends View
 			drawTouchPos = a.getBoolean(R.styleable.Wheel_drawTouch, false);
 			moveWhenOut = a.getBoolean(R.styleable.Wheel_moveWhenOut, false);
 			snapBack = a.getBoolean(R.styleable.Wheel_snapBack, false);
+			enabled = a.getBoolean(R.styleable.Wheel_enabled, true);
 		}
 		finally
 		{
@@ -74,8 +76,9 @@ public class Wheel extends View
 
 		staticWheel = new ScaledBitmap(context.getResources(), R.raw.wheel);
 		staticWheel.setScale((2.0F * wheelRadius) / Math.max(staticWheel.getWidth(), staticWheel.getHeight()));
-		rotatingWheel = new ScaledBitmap(staticWheel.getImage());
-		rotatingWheel.setScale((2.0F * wheelRadius) / Math.max(rotatingWheel.getWidth(), rotatingWheel.getHeight()));
+		rotatingWheel = staticWheel;
+		clickedWheel = staticWheel;
+		drawnWheel = staticWheel;
 	}
 
 	private boolean isInWheel()
@@ -100,18 +103,17 @@ public class Wheel extends View
 
 		if(drawWheelImage)
 		{
-			ScaledBitmap img = state == State.ROLL ? rotatingWheel : staticWheel;
-			float dx = img.getScaledWidth() / 2.0F, dy = img.getScaledHeight() / 2.0F;
+			float dx = drawnWheel.getScaledWidth() / 2.0F, dy = drawnWheel.getScaledHeight() / 2.0F;
+
+			canvas.save();
 
 			canvas.translate(x, y);
 			canvas.rotate(rotation);
 			canvas.translate(-dx, -dy);
 
-			canvas.drawBitmap(img.getImage(), img.getScaleMatrix(), wheelCircle);
+			canvas.drawBitmap(drawnWheel.getImage(), drawnWheel.getScaleMatrix(), wheelCircle);
 
-			canvas.translate(dx, dy);
-			canvas.rotate(-rotation);
-			canvas.translate(-x, -y);
+			canvas.restore();
 		}
 		else
 		{
@@ -123,12 +125,13 @@ public class Wheel extends View
 
 			canvas.drawCircle(x, y, wheelRadius / 10.0F, wheelCircle);
 
+			canvas.save();
 			canvas.rotate(rotation, x, y);
 
 			canvas.drawLine(x, y, x, y, wheelCircle);
 			canvas.drawRect(x - wheelRadius / 100.0F, y - wheelRadius, x + wheelRadius / 100.0F, y, wheelCircle);
 
-			canvas.rotate(-rotation, x, y);
+			canvas.restore();
 		}
 
 		if(drawOutline)
@@ -155,10 +158,13 @@ public class Wheel extends View
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
-		super.onDraw(canvas);
+		if(enabled)
+		{
+			super.onDraw(canvas);
 
-		drawWheel(canvas);
-		drawTouchPos(canvas);
+			drawWheel(canvas);
+			drawTouchPos(canvas);
+		}
 	}
 
 	@Override
@@ -175,104 +181,106 @@ public class Wheel extends View
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		switch(state)
+		if(enabled)
 		{
-			case IDLE:
+			switch(state)
 			{
-				if(event.getAction() == MotionEvent.ACTION_DOWN && isInWheel(event.getX(), event.getY()))
+				case IDLE:
 				{
-					setState(State.CLICK);
-
-					updatePosition(event.getX(), event.getY());
-					initPos.set(pos);
-
-					invalidate();
-
-					return true;
-				}
-
-				break;
-			}
-
-			case CLICK:
-			{
-				switch(event.getAction())
-				{
-					case MotionEvent.ACTION_MOVE:
+					if(event.getAction() == MotionEvent.ACTION_DOWN && isInWheel(event.getX(), event.getY()))
 					{
-						updatePosition(event.getX(), event.getY());
+						setState(State.CLICK);
 
-						if(initPos.distance(pos) > clickPlay)
-						{
-							setState(State.ROLL);
-						}
+						updatePosition(event.getX(), event.getY());
+						initPos.set(pos);
 
 						invalidate();
 
 						return true;
 					}
 
-					case MotionEvent.ACTION_UP:
-					{
-						dispatchWheelClick();
-
-						reset();
-
-						return true;
-					}
+					break;
 				}
 
-				break;
-			}
-
-			case ROLL:
-			{
-				switch(event.getAction())
+				case CLICK:
 				{
-					case MotionEvent.ACTION_MOVE:
+					switch(event.getAction())
 					{
-						updatePosition(event.getX(), event.getY());
-
-						if(isInWheel())
+						case MotionEvent.ACTION_MOVE:
 						{
-							double angle = v.angle(prevV);
-							wheelRotation += angle;
-							nextTick += speed(angle);
-							int direction = Double.compare(angle, 0.0);
+							updatePosition(event.getX(), event.getY());
 
-							dispatchWheelRoll(angle);
-
-							if(nextTick >= 1.0)
+							if(initPos.distance(pos) > clickPlay)
 							{
-								dispatchWheelTick(direction, (int) nextTick);
-
-								nextTick = 0.0;
+								setState(State.ROLL);
 							}
-						}
-						else if(moveWhenOut)
-						{
-							center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
-						}
-						else
-						{
-							setState(State.OUT);
+
+							invalidate();
+
+							return true;
 						}
 
-						invalidate();
+						case MotionEvent.ACTION_UP:
+						{
+							dispatchWheelClick();
 
-						return true;
+							reset();
+
+							return true;
+						}
 					}
 
-					case MotionEvent.ACTION_UP:
-					{
-						reset();
-
-						return true;
-					}
+					break;
 				}
 
-				break;
-			}
+				case ROLL:
+				{
+					switch(event.getAction())
+					{
+						case MotionEvent.ACTION_MOVE:
+						{
+							updatePosition(event.getX(), event.getY());
+
+							if(isInWheel())
+							{
+								double angle = v.angle(prevV);
+								wheelRotation += angle;
+								nextTick += speed(angle);
+								int direction = Double.compare(angle, 0.0);
+
+								dispatchWheelRoll(angle);
+
+								if(nextTick >= 1.0)
+								{
+									dispatchWheelTick(direction, (int) nextTick);
+
+									nextTick = 0.0;
+								}
+							}
+							else if(moveWhenOut)
+							{
+								center.translate(pos.getX() - prevPos.getX(), pos.getY() - prevPos.getY());
+							}
+							else
+							{
+								setState(State.OUT);
+							}
+
+							invalidate();
+
+							return true;
+						}
+
+						case MotionEvent.ACTION_UP:
+						{
+							reset();
+
+							return true;
+						}
+					}
+
+					break;
+				}
 
 //			case MOVE:
 //			{
@@ -305,33 +313,34 @@ public class Wheel extends View
 //				break;
 //			}
 
-			case OUT:
-			{
-				switch(event.getAction())
+				case OUT:
 				{
-					case MotionEvent.ACTION_MOVE:
+					switch(event.getAction())
 					{
-						updatePosition(event.getX(), event.getY());
-
-						if(isInWheel())
+						case MotionEvent.ACTION_MOVE:
 						{
-							setState(State.ROLL);
+							updatePosition(event.getX(), event.getY());
+
+							if(isInWheel())
+							{
+								setState(State.ROLL);
+							}
+
+							invalidate();
+
+							return true;
 						}
 
-						invalidate();
+						case MotionEvent.ACTION_UP:
+						{
+							reset();
 
-						return true;
+							return true;
+						}
 					}
 
-					case MotionEvent.ACTION_UP:
-					{
-						reset();
-
-						return true;
-					}
+					break;
 				}
-
-				break;
 			}
 		}
 

@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 class Element<T> extends LinearLayout
 {
-	private static final float TEXT_SIZE = 32.0F, HIGHLIGHTED_SIZE = 48.0F;
+	private static final float TEXT_SIZE = 48.0F, HIGHLIGHTED_SIZE = 64.0F;
 	private static final int TEXT_COLOR = Color.BLACK, HIGHLIGHTED_COLOR = Color.RED;
 	private final TextView view;
 	private final Formatter<T> formatter;
@@ -31,6 +31,7 @@ class Element<T> extends LinearLayout
 		this.formatter = formatter;
 		setData(data);
 
+		setSelected(false);
 	}
 
 	void setData(T data)
