@@ -5,17 +5,21 @@ import java.util.List;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import fr.polytech.ricm5.mm.rouecool.util.Rectangle;
 
 public class Capture extends View
 {
-	private final int[] states = {7, 30, 15, 41, 3};
-	private final long[] times = new long[states.length];
+	private final int[] transitions = {7, 30, 15, 41, 3, 90};
+	private final long[] times = new long[transitions.length + 1];
 	private final TextPaint text;
+	private final Paint fill;
+	private final Rectangle rect = new Rectangle();
 	private long start = 0L;
 	private int state = -1;
 
@@ -24,8 +28,12 @@ public class Capture extends View
 		super(context, attrs);
 
 		text = new TextPaint(TextPaint.LINEAR_TEXT_FLAG);
-		text.setTextSize(128.0F);
+		text.setTextSize(64.0F);
 		text.setColor(Color.BLUE);
+
+		fill = new Paint();
+		fill.setStyle(Paint.Style.FILL);
+		fill.setColor(Color.GREEN);
 	}
 
 	private void start()
@@ -42,19 +50,22 @@ public class Capture extends View
 
 	private boolean isEnded()
 	{
-		return state >= states.length;
+		return state >= transitions.length;
 	}
 
 	void next(int k)
 	{
-		if(state >= 0 && state < states.length)
+		if(state >= 0 && state < transitions.length)
 		{
-			if(k == states[state])
+			if(k == transitions[state])
 			{
 				long stop = System.currentTimeMillis();
-				times[state++] = stop - start;
+				long elapsed = stop - start;
+				times[state++] = elapsed;
 
-				Log.i("Demo state", String.valueOf(state));
+				times[transitions.length + 1] += elapsed;
+
+				Log.d("Demo", String.valueOf(state));
 
 				start = stop;
 			}
@@ -63,12 +74,12 @@ public class Capture extends View
 
 	String[] getElements(List<Element<String>> elements)
 	{
-		int length = states.length;
+		int length = transitions.length;
 		String[] strings = new String[length];
 
 		for(int i = 0; i < length; i++)
 		{
-			strings[i] = elements.get(states[i]).formatData();
+			strings[i] = elements.get(transitions[i]).formatData();
 		}
 
 		return strings;
@@ -85,10 +96,20 @@ public class Capture extends View
 
 			for(long time : times)
 			{
-				canvas.drawText(String.valueOf(time), 32.0F, y, text);
+				String s = String.valueOf(time);
+
+				rect.setX(24.0F);
+				rect.setY(y - text.getTextSize());
+				rect.setWidth(text.measureText(s) + 16.0F);
+				rect.setHeight(text.getTextSize() + 16.0F);
+
+				canvas.drawRect(rect.rect(), fill);
+				canvas.drawText(s, 32.0F, y, text);
 
 				y += f;
 			}
+
+			Log.d("Demo", "END");
 		}
 	}
 

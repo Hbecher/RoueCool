@@ -81,6 +81,11 @@ public class Wheel extends View
 		drawnWheel = staticWheel;
 	}
 
+	public boolean isWheelEnabled()
+	{
+		return enabled;
+	}
+
 	private boolean isInWheel()
 	{
 		return isInWheel(pos.getX(), pos.getY());
@@ -125,13 +130,13 @@ public class Wheel extends View
 
 			canvas.drawCircle(x, y, wheelRadius / 10.0F, wheelCircle);
 
-			canvas.save();
+			/*canvas.save();
 			canvas.rotate(rotation, x, y);
 
 			canvas.drawLine(x, y, x, y, wheelCircle);
 			canvas.drawRect(x - wheelRadius / 100.0F, y - wheelRadius, x + wheelRadius / 100.0F, y, wheelCircle);
 
-			canvas.restore();
+			canvas.restore();*/
 		}
 
 		if(drawOutline)
@@ -344,7 +349,7 @@ public class Wheel extends View
 			}
 		}
 
-		return false;
+		return enabled;
 	}
 
 	private void updatePosition(float x, float y)

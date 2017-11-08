@@ -31,6 +31,7 @@ public class Demo extends AppCompatActivity
 	private SoundManager soundManager;
 	private TextView selection;
 	private ListView list;
+	private Wheel wheel;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -41,6 +42,7 @@ public class Demo extends AppCompatActivity
 		capture = (Capture) findViewById(R.id.demo_capture);
 		selection = (TextView) findViewById(R.id.demo_select);
 		list = (ListView) findViewById(R.id.demo_list);
+		wheel = (Wheel) findViewById(R.id.demo_wheel);
 
 		populateElements();
 
@@ -51,27 +53,20 @@ public class Demo extends AppCompatActivity
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 			{
-				if(position != selected)
-				{
-					setSelected(position);
+				setSelected(position);
 
-					playSelectSound();
-				}
+				playSelectSound();
 			}
 		});
 
-		Wheel wheel = (Wheel) findViewById(R.id.demo_wheel);
 		WheelListener l = new WheelAdapter()
 		{
 			@Override
 			public void onWheelClick()
 			{
-				if(highlighted != selected)
-				{
-					setSelected(highlighted);
+				setSelected(highlighted);
 
-					playSelectSound();
-				}
+				playSelectSound();
 			}
 
 			@Override
@@ -141,7 +136,7 @@ public class Demo extends AppCompatActivity
 
 		setSelected(0);
 
-		Log.i("Wheel demo elements", Arrays.toString(capture.getElements(elements)));
+		Log.i("Demo", Arrays.toString(capture.getElements(elements)));
 	}
 
 	private int mod(int k, int n)
@@ -173,7 +168,10 @@ public class Demo extends AppCompatActivity
 
 		elements.get(index).setSelected(true);
 
-		list.setSelection(index);
+		if(wheel.isWheelEnabled())
+		{
+			list.setSelection(index);
+		}
 	}
 
 	private void playHighlightSound()
