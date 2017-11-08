@@ -50,7 +50,10 @@ public class Wheel extends View
 			drawTouchPos = a.getBoolean(R.styleable.Wheel_drawTouch, false);
 			moveWhenOut = a.getBoolean(R.styleable.Wheel_moveWhenOut, false);
 			snapBack = a.getBoolean(R.styleable.Wheel_snapBack, false);
-			enabled = a.getBoolean(R.styleable.Wheel_enabled, true);
+
+			///////////////
+			enabled = false;
+			///////////////
 		}
 		finally
 		{

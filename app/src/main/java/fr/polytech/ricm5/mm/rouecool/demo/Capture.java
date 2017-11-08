@@ -63,7 +63,7 @@ public class Capture extends View
 				long elapsed = stop - start;
 				times[state++] = elapsed;
 
-				times[transitions.length + 1] += elapsed;
+				times[transitions.length] += elapsed;
 
 				Log.d("Demo", String.valueOf(state));
 
